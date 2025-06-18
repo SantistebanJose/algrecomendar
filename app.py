@@ -17,8 +17,10 @@ CORS(app)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Configuración de API
+# Configuración de API   
 API_KEY_YOUTUBE = os.environ.get('API_KEY_YOUTUBE', "AIzaSyABTthRa7IRPaKIDtMZm61kVuPQSkHuLjI")
+API_KEY_YOUTUBE2 = os.environ.get('API_KEY_YOUTUBE', "AIzaSyDJlfXMf--QyyRT7okfKOwm2caFPIoobR0")
+
 
 # ------------------ FUNCIONES DE BASE DE DATOS ------------------
 def conectar_postgres():
@@ -147,15 +149,26 @@ def obtener_videos_youtube(tema_legible, max_results=2):
     """Obtiene videos de YouTube relacionados con el tema"""
     try:
         url = "https://www.googleapis.com/youtube/v3/search"
-        params = {
+        params = {}
+
+        params_1 = {
             'part': 'snippet',
             'q': f"{tema_legible} matemáticas tutorial",
             'type': 'video',
             'maxResults': max_results,
             'key': API_KEY_YOUTUBE
         }
-        response = requests.get(url, params=params, timeout=10)
-        
+        params_2 = {
+            'part': 'snippet',
+            'q': f"{tema_legible} matemáticas tutorial",
+            'type': 'video',
+            'maxResults': max_results,
+            'key': API_KEY_YOUTUBE2
+        }  
+        response = requests.get(url, params=params_1, timeout=10)
+        if response.json().get('items') is None:
+            response = requests.get(url, params=params_2, timeout=10)
+            
         if response.status_code != 200:
             return []
             
