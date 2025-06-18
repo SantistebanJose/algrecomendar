@@ -18,8 +18,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Configuración de API   
-API_KEY_YOUTUBE = os.environ.get('API_KEY_YOUTUBE', "AIzaSyABTthRa7IRPaKIDtMZm61kVuPQSkHuLjI")
+API_KEY_YOUTUBE = os.environ.get('API_KEY_YOUTUBE', "AIzaSyABTthRa7IRPaKIDtMZm61kVuPQSkHuLjI") 
 API_KEY_YOUTUBE2 = os.environ.get('API_KEY_YOUTUBE', "AIzaSyDJlfXMf--QyyRT7okfKOwm2caFPIoobR0")
+API_KEY_YOUTUBE3 = os.environ.get('API_KEY_YOUTUBE', "AIzaSyCGGdh_Ba9UZznoU7gEBkJAz7iSHDI2jgI")
+
 
 
 # ------------------ FUNCIONES DE BASE DE DATOS ------------------
@@ -163,7 +165,7 @@ def obtener_videos_youtube(tema_legible, max_results=2):
             'q': f"{tema_legible} matemáticas tutorial",
             'type': 'video',
             'maxResults': max_results,
-            'key': API_KEY_YOUTUBE2
+            'key': API_KEY_YOUTUBE3
         }  
         response = requests.get(url, params=params_1, timeout=10)
         if response.json().get('items') is None:
