@@ -17,10 +17,16 @@ CORS(app)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Configuración de API   
-API_KEY_YOUTUBE = os.environ.get('API_KEY_YOUTUBE', "AIzaSyABTthRa7IRPaKIDtMZm61kVuPQSkHuLjI") 
-API_KEY_YOUTUBE2 = os.environ.get('API_KEY_YOUTUBE', "AIzaSyDJlfXMf--QyyRT7okfKOwm2caFPIoobR0")
-API_KEY_YOUTUBE3 = os.environ.get('API_KEY_YOUTUBE', "AIzaSyCGGdh_Ba9UZznoU7gEBkJAz7iSHDI2jgI")
+# Cargar claves desde variables de entorno (hasta 20 claves)
+API_KEYS_YOUTUBE = [
+    os.environ.get(f'API_KEY_YOUTUBE_{i}') for i in range(1, 21)
+]
+
+# Filtrar las que estén vacías o no definidas
+API_KEYS_YOUTUBE = [key for key in API_KEYS_YOUTUBE if key]
+
+# Crear un iterador cíclico para rotar las claves automáticamente
+api_key_iterator = itertools.cycle(API_KEYS_YOUTUBE)
 
 
 
@@ -148,67 +154,50 @@ def entrenar_modelo(df_grouped):
         return None, str(e)
 
 def obtener_videos_youtube(tema_legible, max_results=2):
-    """Obtiene videos de YouTube relacionados con el tema"""
+    """Obtiene videos de YouTube relacionados con el tema usando rotación de claves"""
     try:
         url = "https://www.googleapis.com/youtube/v3/search"
-        params = {}
+        api_key = next(api_key_iterator)  # Obtener la siguiente clave en la rotación
 
-        params_1 = {
+        params = {
             'part': 'snippet',
             'q': f"{tema_legible} matemáticas tutorial",
             'type': 'video',
             'maxResults': max_results,
-            'key': API_KEY_YOUTUBE
+            'key': api_key
         }
-        params_2 = {
-            'part': 'snippet',
-            'q': f"{tema_legible} matemáticas tutorial",
-            'type': 'video',
-            'maxResults': max_results,
-            'key': API_KEY_YOUTUBE2
-        }  
-        response = requests.get(url, params=params_1, timeout=10)
-        if response.json().get('items') is None:
-            response = requests.get(url, params=params_2, timeout=10)
-            
+
+        response = requests.get(url, params=params, timeout=10)
         if response.status_code != 200:
+            logger.warning(f"Fallo con clave: {api_key}, status: {response.status_code}")
             return []
-            
+
         items = response.json().get('items', [])
         videos = []
         for item in items:
-            titulo = item['snippet']['title']
-            descripcion = item['snippet']['description']
-            canal = item['snippet']['channelTitle']
-            fecha_publicacion = item['snippet']['publishedAt']
+            snippet = item['snippet']
             video_id = item['id']['videoId']
-            link = f"https://www.youtube.com/watch?v={video_id}"
-            
-            # Obtener diferentes calidades de miniaturas
-            thumbnails = item['snippet']['thumbnails']
-            thumbnail_url = None
-            
-            # Priorizar calidad de miniatura: maxres > high > medium > default
-            if 'maxres' in thumbnails:
-                thumbnail_url = thumbnails['maxres']['url']
-            elif 'high' in thumbnails:
-                thumbnail_url = thumbnails['high']['url']
-            elif 'medium' in thumbnails:
-                thumbnail_url = thumbnails['medium']['url']
-            elif 'default' in thumbnails:
-                thumbnail_url = thumbnails['default']['url']
-            
+            thumbnails = snippet.get('thumbnails', {})
+
+            # Seleccionar la mejor calidad disponible
+            thumbnail_url = thumbnails.get('maxres', {}).get('url') or \
+                            thumbnails.get('high', {}).get('url') or \
+                            thumbnails.get('medium', {}).get('url') or \
+                            thumbnails.get('default', {}).get('url')
+
             videos.append({
-                'titulo': titulo,
-                'descripcion': descripcion[:150] + '...' if len(descripcion) > 150 else descripcion,
-                'canal': canal,
-                'fecha_publicacion': fecha_publicacion,
-                'url': link,
+                'titulo': snippet['title'],
+                'descripcion': snippet['description'][:150] + '...' if len(snippet['description']) > 150 else snippet['description'],
+                'canal': snippet['channelTitle'],
+                'fecha_publicacion': snippet['publishedAt'],
+                'url': f"https://www.youtube.com/watch?v={video_id}",
                 'video_id': video_id,
                 'thumbnail_url': thumbnail_url,
-                'thumbnail_embed': f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"  # URL alternativa
+                'thumbnail_embed': f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
             })
+
         return videos
+
     except Exception as e:
         logger.error(f"Error obteniendo videos de YouTube: {e}")
         return []
