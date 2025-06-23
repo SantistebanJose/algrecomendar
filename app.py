@@ -165,7 +165,7 @@ def obtener_videos_youtube(tema_legible, max_results=2):
             'q': f"{tema_legible} matemáticas tutorial",
             'type': 'video',
             'maxResults': max_results,
-            'key': API_KEY_YOUTUBE3
+            'key': API_KEY_YOUTUBE2
         }  
         response = requests.get(url, params=params_1, timeout=10)
         if response.json().get('items') is None:
