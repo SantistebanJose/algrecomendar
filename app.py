@@ -7,6 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, accuracy_score
 import requests
 import logging
+import itertools
 import os
 from datetime import datetime
 
