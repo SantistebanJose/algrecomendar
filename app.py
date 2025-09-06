@@ -36,10 +36,10 @@ def conectar_postgres():
     """Conecta a la base de datos PostgreSQL"""
     try:
         return psycopg2.connect(
-            host=os.environ.get('DB_HOST', 'dpg-d12hp249c44c738ar9qg-a.oregon-postgres.render.com'),
-            database=os.environ.get('DB_NAME', 'bd_graututor'),
-            user=os.environ.get('DB_USER', 'bd_graututor_user'),
-            password=os.environ.get('DB_PASSWORD', 'vv19vRPRJzgptbk1sV4SzLPKZQbXqN42'),
+            host=os.environ.get('DB_HOST', 'dpg-d2tm3mh5pdvs739n59vg-a.oregon-postgres.render.com'),
+            database=os.environ.get('DB_NAME', 'graultutor_db'),
+            user=os.environ.get('DB_USER', 'graultutor_db_user'),
+            password=os.environ.get('DB_PASSWORD', 'WgMFiEvEDeGFWHLtInCQuuozBFEXfR7C'),
             port=os.environ.get('DB_PORT', '5432')
         )
     except Exception as e:
